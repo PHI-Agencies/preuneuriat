@@ -77,13 +77,18 @@ opacity:.9;
 
 #receipt{
 background:white;
-padding:30px;
+width:210mm;
+min-height:297mm;
+padding:20mm;
+margin:auto;
+box-sizing:border-box;
+overflow:hidden;
 }
 
 .logo{
 display:block;
 margin:auto;
-width:120px;
+width:35mm;
 }
 
 .company{
@@ -92,12 +97,14 @@ font-size:28px;
 font-weight:bold;
 margin-top:10px;
 color:#0056b3;
+word-break:break-word;
 }
 
 .subtitle{
 text-align:center;
 margin-top:5px;
 margin-bottom:20px;
+font-size:15px;
 }
 
 .receipt-title{
@@ -110,6 +117,8 @@ margin:20px 0;
 .line{
 margin-bottom:12px;
 font-size:17px;
+word-break:break-word;
+overflow-wrap:break-word;
 }
 
 .amount{
@@ -118,14 +127,19 @@ font-weight:bold;
 color:green;
 }
 
-hr{
-margin:20px 0;
+span{
+word-break:break-word;
 }
-
 @media(max-width:900px){
 
 .container{
 grid-template-columns:1fr;
+}
+
+#receipt{
+transform:scale(0.42);
+transform-origin:top center;
+margin-bottom:-170mm;
 }
 
 }
@@ -320,38 +334,37 @@ document.getElementById('receipt');
 
 const canvas =
 await html2canvas(receipt,{
-scale:3
+scale:4,
+useCORS:true,
+backgroundColor:"#ffffff"
 });
 
 const imgData =
-canvas.toDataURL('image/png');
+canvas.toDataURL('image/jpeg',1.0);
 
 const { jsPDF } = window.jspdf;
 
 const pdf =
-new jsPDF('p','mm','a4');
-
-const width = 190;
-
-const height =
-(canvas.height * width)
-/ canvas.width;
+new jsPDF({
+orientation:'portrait',
+unit:'mm',
+format:'a4'
+});
 
 pdf.addImage(
 imgData,
-'PNG',
-10,
-10,
-width,
-height
+'JPEG',
+0,
+0,
+210,
+297
 );
 
 const receiptNumber =
-document.getElementById('r_numero')
-.innerText;
+document.getElementById('r_numero').innerText;
 
 pdf.save(
-'Recu_'+receiptNumber+'.pdf'
+`Recu_${receiptNumber}.pdf`
 );
 
 }
