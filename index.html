@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>FASO PRENEURIAT - Reçu de Paiement</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:#f4f6f9;
+padding:20px;
+}
+
+.container{
+max-width:1200px;
+margin:auto;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+}
+
+.card{
+background:#fff;
+padding:25px;
+border-radius:15px;
+box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+h2{
+color:#0056b3;
+margin-bottom:20px;
+}
+
+label{
+display:block;
+margin-top:12px;
+font-weight:bold;
+}
+
+input{
+width:100%;
+padding:12px;
+margin-top:5px;
+border:1px solid #ddd;
+border-radius:8px;
+font-size:16px;
+}
+
+button{
+width:100%;
+padding:15px;
+border:none;
+border-radius:10px;
+background:#0056b3;
+color:white;
+font-size:16px;
+font-weight:bold;
+cursor:pointer;
+margin-top:20px;
+}
+
+button:hover{
+opacity:.9;
+}
+
+#receipt{
+background:white;
+padding:30px;
+}
+
+.logo{
+display:block;
+margin:auto;
+width:120px;
+}
+
+.company{
+text-align:center;
+font-size:28px;
+font-weight:bold;
+margin-top:10px;
+color:#0056b3;
+}
+
+.subtitle{
+text-align:center;
+margin-top:5px;
+margin-bottom:20px;
+}
+
+.receipt-title{
+text-align:center;
+font-size:22px;
+font-weight:bold;
+margin:20px 0;
+}
+
+.line{
+margin-bottom:12px;
+font-size:17px;
+}
+
+.amount{
+font-size:24px;
+font-weight:bold;
+color:green;
+}
+
+hr{
+margin:20px 0;
+}
+
+@media(max-width:900px){
+
+.container{
+grid-template-columns:1fr;
+}
+
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<div class="card">
+
+<h2>Nouveau Paiement</h2>
+
+<label>Nom du client</label>
+<input
+type="text"
+id="nom"
+oninput="updateReceipt()">
+
+<label>Téléphone</label>
+<input
+type="text"
+id="telephone"
+oninput="updateReceipt()">
+
+<label>Période</label>
+<input
+type="text"
+id="periode"
+placeholder="Janvier 2026"
+oninput="updateReceipt()">
+
+<label>Montant payé (FCFA)</label>
+<input
+type="number"
+id="montant"
+oninput="updateReceipt()">
+
+<label>Reste à payer (FCFA)</label>
+<input
+type="number"
+id="reste"
+oninput="updateReceipt()">
+
+<button onclick="downloadPDF()">
+📄 Télécharger le reçu PDF
+</button>
+
+</div>
+
+<div class="card">
+
+<div id="receipt">
+
+<img src="logo.jpg" class="logo">
+
+<div class="company">
+FASO PRENEURIAT
+</div>
+
+<div class="subtitle">
+Formation • Entrepreneuriat • Accompagnement
+</div>
+
+<div class="receipt-title">
+REÇU DE PAIEMENT
+</div>
+
+<div class="line">
+<b>N° Reçu :</b>
+<span id="r_numero"></span>
+</div>
+
+<div class="line">
+<b>Date :</b>
+<span id="r_date"></span>
+</div>
+
+<hr>
+
+<div class="line">
+<b>Nom :</b>
+<span id="r_nom"></span>
+</div>
+
+<div class="line">
+<b>Téléphone :</b>
+<span id="r_tel"></span>
+</div>
+
+<div class="line">
+<b>Période :</b>
+<span id="r_periode"></span>
+</div>
+
+<div class="line amount">
+Montant payé :
+<span id="r_montant">0</span> FCFA
+</div>
+
+<div class="line">
+<b>Reste à payer :</b>
+<span id="r_reste">0</span> FCFA
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+function generateReceiptNumber(){
+
+const now = new Date();
+
+const year = now.getFullYear();
+
+const month =
+String(now.getMonth()+1).padStart(2,'0');
+
+const day =
+String(now.getDate()).padStart(2,'0');
+
+const hour =
+String(now.getHours()).padStart(2,'0');
+
+const minute =
+String(now.getMinutes()).padStart(2,'0');
+
+const second =
+String(now.getSeconds()).padStart(2,'0');
+
+return `${year}${month}${day}${hour}${minute}${second}`;
+
+}
+
+function getDateTime(){
+
+const now = new Date();
+
+return now.toLocaleDateString('fr-FR')
++ ' à '
++ now.toLocaleTimeString('fr-FR');
+
+}
+
+function formatNumber(value){
+
+if(!value) return "0";
+
+return Number(value)
+.toLocaleString('fr-FR');
+
+}
+
+function updateReceipt(){
+
+document.getElementById('r_nom').innerText =
+document.getElementById('nom').value;
+
+document.getElementById('r_tel').innerText =
+document.getElementById('telephone').value;
+
+document.getElementById('r_periode').innerText =
+document.getElementById('periode').value;
+
+document.getElementById('r_montant').innerText =
+formatNumber(
+document.getElementById('montant').value
+);
+
+document.getElementById('r_reste').innerText =
+formatNumber(
+document.getElementById('reste').value
+);
+
+}
+
+document.getElementById('r_numero').innerText =
+generateReceiptNumber();
+
+document.getElementById('r_date').innerText =
+getDateTime();
+
+async function downloadPDF(){
+
+const receipt =
+document.getElementById('receipt');
+
+const canvas =
+await html2canvas(receipt,{
+scale:3
+});
+
+const imgData =
+canvas.toDataURL('image/png');
+
+const { jsPDF } = window.jspdf;
+
+const pdf =
+new jsPDF('p','mm','a4');
+
+const width = 190;
+
+const height =
+(canvas.height * width)
+/ canvas.width;
+
+pdf.addImage(
+imgData,
+'PNG',
+10,
+10,
+width,
+height
+);
+
+const receiptNumber =
+document.getElementById('r_numero')
+.innerText;
+
+pdf.save(
+'Recu_'+receiptNumber+'.pdf'
+);
+
+}
+
+updateReceipt();
+
+</script>
+
+</body>
+</html>
