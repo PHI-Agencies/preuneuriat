@@ -566,8 +566,8 @@
             document.getElementById('view-receipt-main-amount').innerText = "Montant payé : " + formatNumber(payeSimple) + " FCFA";
         }
 
-        // Ecriture automatique et dynamique du montant en lettres[cite: 1]
-        document.getElementById('view-amount-words').innerText = formatMontantLetterGlobal(calculTotal);
+        // Ecriture du montant global en lettres tout en bas
+        document.getElementById('view-amount-words').innerText = conversionEnLettres(calculTotal);
     }
 
     async function downloadPDF() {
