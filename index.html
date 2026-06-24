@@ -1,376 +1,600 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FASOPRENEURIAT - Gestion des Documents</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            background: #eef2f7;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1500px;
+            margin: auto;
+            display: grid;
+            grid-template-columns: 450px 1fr;
+            gap: 25px;
+        }
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 25px rgba(0,0,0,.08);
+            height: fit-content;
+        }
+        h2 {
+            color: #0056b3;
+            margin-bottom: 20px;
+            font-size: 22px;
+            border-bottom: 2px solid #f1f1f1;
+            padding-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-top: 12px;
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+        input:focus, select:focus {
+            border-color: #0056b3;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 25px;
+            border: none;
+            border-radius: 10px;
+            background: #0056b3;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #004085;
+        }
+        .hidden {
+            display: none !important;
+        }
 
-<title>FASOPRENEURIAT - Reçu de Paiement</title>
+        /* --- PREVIEW ZONE (A4 Format) --- */
+        .preview-scroll {
+            overflow-x: auto;
+            display: flex;
+            justify-content: center;
+        }
+        #doc-render {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            padding: 20mm;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .logo {
+            display: block;
+            margin: auto;
+            width: 35mm;
+            height: auto;
+        }
+        .company {
+            text-align: center;
+            font-size: 26px;
+            font-weight: bold;
+            margin-top: 10px;
+            color: #0056b3;
+            letter-spacing: 1px;
+        }
+        .activities {
+            margin-top: 12px;
+            font-size: 11px;
+            line-height: 1.5;
+            text-align: center;
+            font-weight: bold;
+            color: #444;
+            text-transform: uppercase;
+        }
+        .doc-date {
+            margin-top: 25px;
+            text-align: right;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        .doc-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            margin: 25px 0;
+            color: #111;
+            text-transform: uppercase;
+            border-bottom: 2px dashed #0056b3;
+            padding-bottom: 8px;
+        }
+        .details-zone {
+            margin-bottom: 20px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .details-zone b {
+            color: #333;
+            display: inline-block;
+            width: 120px;
+        }
+        
+        /* Table Facture */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 15px;
+        }
+        table th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        table th, table td {
+            border: 1px solid #000;
+            padding: 12px;
+            text-align: center;
+        }
+        
+        .amount-box {
+            font-size: 22px;
+            font-weight: bold;
+            color: #28a745;
+            margin-top: 20px;
+            text-align: right;
+        }
+        .words-box {
+            margin-top: 25px;
+            font-size: 15px;
+            line-height: 1.6;
+            font-weight: bold;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #0056b3;
+        }
+        
+        /* Zone de Signature */
+        .signature-zone {
+            margin-top: auto; 
+            align-self: flex-end;
+            text-align: center;
+            width: 250px;
+            padding-top: 40px;
+            margin-bottom: 20mm;
+        }
+        .signature-zone p {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+            text-decoration: underline;
+        }
+        .signature-zone img {
+            width: 100%;
+            max-height: 80px;
+            object-fit: contain;
+        }
+        .directeur-name {
+            font-weight: bold;
+            font-size: 15px;
+            margin-top: 5px;
+        }
+        .directeur-title {
+            display: block;
+            font-weight: normal;
+            font-size: 12px;
+            color: #555;
+        }
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        /* Pied de page */
+        .footer-company {
+            position: absolute;
+            bottom: 8mm;
+            left: 15mm;
+            right: 15mm;
+            font-size: 10px;
+            line-height: 1.5;
+            text-align: center;
+            border-top: 1px solid #ccc;
+            padding-top: 8px;
+            color: #444;
+        }
 
-<style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,sans-serif;
-}
-
-body{
-background:#f4f6f9;
-padding:20px;
-}
-
-.container{
-max-width:1200px;
-margin:auto;
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:20px;
-}
-
-.card{
-background:#fff;
-padding:25px;
-border-radius:15px;
-box-shadow:0 5px 20px rgba(0,0,0,.08);
-}
-
-h2{
-color:#0056b3;
-margin-bottom:20px;
-}
-
-label{
-display:block;
-margin-top:12px;
-font-weight:bold;
-}
-
-input{
-width:100%;
-padding:12px;
-margin-top:5px;
-border:1px solid #ddd;
-border-radius:8px;
-font-size:16px;
-}
-
-button{
-width:100%;
-padding:15px;
-border:none;
-border-radius:10px;
-background:#0056b3;
-color:white;
-font-size:16px;
-font-weight:bold;
-cursor:pointer;
-margin-top:20px;
-}
-
-button:hover{
-opacity:.9;
-}
-
-#receipt{
-background:white;
-width:210mm;
-min-height:297mm;
-padding:20mm;
-margin:auto;
-box-sizing:border-box;
-overflow:hidden;
-}
-
-.logo{
-display:block;
-margin:auto;
-width:35mm;
-}
-
-.company{
-text-align:center;
-font-size:28px;
-font-weight:bold;
-margin-top:10px;
-color:#0056b3;
-word-break:break-word;
-}
-
-.subtitle{
-text-align:center;
-margin-top:5px;
-margin-bottom:20px;
-font-size:15px;
-}
-
-.receipt-title{
-text-align:center;
-font-size:22px;
-font-weight:bold;
-margin:20px 0;
-}
-
-.line{
-margin-bottom:12px;
-font-size:17px;
-word-break:break-word;
-overflow-wrap:break-word;
-}
-
-.amount{
-font-size:24px;
-font-weight:bold;
-color:green;
-}
-
-span{
-word-break:break-word;
-}
-@media(max-width:900px){
-
-.container{
-grid-template-columns:1fr;
-}
-
-#receipt{
-transform:scale(0.42);
-transform-origin:top center;
-margin-bottom:-170mm;
-}
-
-}
-
-</style>
+        @media(max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            .preview-scroll {
+                justify-content: flex-start;
+            }
+        }
+    </style>
 </head>
 <body>
 
 <div class="container">
 
-<div class="card">
+    <!-- Formulaire à Gauche -->
+    <div class="card">
+        <h2>Création de Document</h2>
+        
+        <label>Type de document</label>
+        <select id="documentType" onchange="switchDocumentType()">
+            <option value="facture">Facture Officielle</option>
+            <option value="tontine">Reçu Tontine</option>
+            <option value="simple">Reçu Simple</option>
+        </select>
 
-<h2>Nouveau Paiement</h2>
+        <label>Nom du Client / Doit</label>
+        <input type="text" id="client" placeholder="Ex: TIKO SOLUTIONS SARL" oninput="updateDocumentPreview()">
 
-<label>Nom du client</label>
-<input
-type="text"
-id="nom"
-oninput="updateReceipt()">
+        <label>Téléphone Client</label>
+        <input type="text" id="telephone" placeholder="Ex: 25 34 18 18" oninput="updateDocumentPreview()">
 
-<label>Téléphone</label>
-<input
-type="text"
-id="telephone"
-oninput="updateReceipt()">
+        <!-- Champs Dynamiques : Facture / Reçu Simple -->
+        <div id="objetField">
+            <label>Objet / Désignation</label>
+            <input type="text" id="objet" placeholder="Ex: Serviettes hygiéniques féminines..." oninput="updateDocumentPreview()">
+        </div>
 
-<label>Période</label>
-<input
-type="text"
-id="periode"
-placeholder="Janvier 2026"
-oninput="updateReceipt()">
+        <!-- Champs Spécifiques Facture (Calculés) -->
+        <div id="factureFields">
+            <label>Quantité</label>
+            <input type="number" id="quantite" value="1" min="1" oninput="updateDocumentPreview()">
 
-<label>Montant payé (FCFA)</label>
-<input
-type="number"
-id="montant"
-oninput="updateReceipt()">
+            <label>Prix Unitaire (FCFA)</label>
+            <input type="number" id="prix" value="0" min="0" oninput="updateDocumentPreview()">
+        </div>
 
-<label>Reste à payer (FCFA)</label>
-<input
-type="number"
-id="reste"
-oninput="updateReceipt()">
+        <!-- Champs Spécifiques Tontine -->
+        <div id="tontineFields" class="hidden">
+            <label>Période tontine</label>
+            <input type="text" id="periode" placeholder="Ex: Janvier 2026" oninput="updateDocumentPreview()">
 
-<button onclick="downloadPDF()">
-📄 Télécharger le reçu PDF
-</button>
+            <label>Montant Versé (FCFA)</label>
+            <input type="number" id="montantVerse" value="0" min="0" oninput="updateDocumentPreview()">
 
-</div>
+            <label>Reste à payer (FCFA)</label>
+            <input type="number" id="restePayer" value="0" min="0" oninput="updateDocumentPreview()">
+        </div>
 
-<div class="card">
+        <!-- Champ Montant Unique pour Reçu Simple -->
+        <div id="simpleFields" class="hidden">
+            <label>Montant Payé (FCFA)</label>
+            <input type="number" id="montantSimple" value="0" min="0" oninput="updateDocumentPreview()">
+        </div>
 
-<div id="receipt">
+        <button onclick="downloadPDF()">📄 Télécharger le Document PDF</button>
+    </div>
 
-<img src="logo.jpg" class="logo">
+    <!-- Aperçu A4 en Temps Réel à Droite -->
+    <div class="preview-scroll">
+        <div id="doc-render">
+            
+            <!-- En-tête Commun -->
+            <img src="logo.jpg" alt="LOGO FASOPRENEURIAT" class="logo">
+            <div class="company">FASOPRENEURIAT</div>
+            
+            <div class="activities">
+                Accompagnement aux Entreprises (Services Techniques et Financiers)<br>
+                Production et Commercialisation de Couches Lavables<br>
+                Conseil pour les Affaires et le Management<br>
+                Prestations de Services & Divers
+            </div>
 
-<div class="company">
-FASOPRENEURIAT
-</div>
+            <div class="doc-date" id="view-date">Ouagadougou, le --/--/----</div>
+            <div class="doc-title" id="view-title">FACTURE N° --</div>
 
-<div class="subtitle">
-Formation • Entrepreneuriat • Accompagnement
-</div>
+            <!-- Infos Client -->
+            <div class="details-zone">
+                <div><b>Client :</b> <span id="view-client"></span></div>
+                <div><b>Tél :</b> <span id="view-tel"></span></div>
+                <div id="view-row-objet"><b>Objet :</b> <span id="view-objet"></span></div>
+                <div id="view-row-periode" class="hidden"><b>Période :</b> <span id="view-periode"></span></div>
+            </div>
 
-<div class="receipt-title">
-REÇU DE PAIEMENT
-</div>
+            <!-- Tableau (Affiché uniquement pour la Facture) -->
+            <table id="factureTable">
+                <thead>
+                    <tr>
+                        <th>Désignation</th>
+                        <th>Quantité</th>
+                        <th>Prix Unitaire</th>
+                        <th>Prix Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td id="view-table-designation" style="text-align: left;"></td>
+                        <td id="view-table-qty">0</td>
+                        <td id="view-table-pu">0</td>
+                        <td id="view-table-ptotal">0</td>
+                    </tr>
+                </tbody>
+            </table>
 
-<div class="line">
-<b>N° Reçu :</b>
-<span id="r_numero"></span>
-</div>
+            <!-- Zone des montants pour les reçus -->
+            <div id="receiptAmounts" class="hidden" style="font-size: 16px; line-height: 2;">
+                <div class="amount-box" style="text-align: left;" id="view-receipt-main-amount">Montant payé : 0 FCFA</div>
+                <div id="view-row-reste" class="hidden"><b>Reste à payer :</b> <span id="view-receipt-reste">0</span> FCFA</div>
+            </div>
 
-<div class="line">
-<b>Date :</b>
-<span id="r_date"></span>
-</div>
+            <!-- Total Général (Facture) -->
+            <div class="amount-box" id="factureTotalBox">TOTAL : <span id="view-total-general">0</span> FCFA</div>
 
-<hr>
+            <!-- Arrêté en Lettres -->
+            <div class="words-box">
+                Arrêtée la présente facture à la somme de : <br>
+                <span id="view-amount-words" style="text-transform: uppercase;">ZERO FRANC CFA</span>
+            </div>
 
-<div class="line">
-<b>Nom :</b>
-<span id="r_nom"></span>
-</div>
+            <!-- Bloc Signature Directeur -->
+            <div class="signature-zone">
+                <p>Le Directeur</p>
+                <img src="cachet-signature.jpg" alt="Cachet & Signature">
+                <div class="directeur-name">
+                    Karim KABORE
+                    <small class="directeur-title">Docteur Qualité Totale et Entrepreneuriat</small>
+                </div>
+            </div>
 
-<div class="line">
-<b>Téléphone :</b>
-<span id="r_tel"></span>
-</div>
+            <!-- Pied de page officiel -->
+            <div class="footer-company">
+                Société Anonyme à Responsabilité Limitée au Capital de : 1 000 000 FCFA - Siège Social : Ouagadougou - Secteur 13<br>
+                07 BP 8753 Ouagadougou 07 - Cél : (226) 70 73 87 17<br>
+                RC : BF OUA 2021 B 3722 - N° IFU : 00155776B - N° Cpte BOA : 04053640003
+            </div>
 
-<div class="line">
-<b>Période :</b>
-<span id="r_periode"></span>
-</div>
-
-<div class="line amount">
-Montant payé :
-<span id="r_montant">0</span> FCFA
-</div>
-
-<div class="line">
-<b>Reste à payer :</b>
-<span id="r_reste">0</span> FCFA
-</div>
-
-</div>
-
-</div>
+        </div>
+    </div>
 
 </div>
 
 <script>
+    // Algorithme complet de conversion de nombres en lettres en français
+    function nombreEnLettres(nombre) {
+        if (nombre === 0) return "zéro";
+        
+        const unites = ["", "un", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf", "dix", "onze", "douze", "treize", "quatorze", "quinze", "seize", "dix-sept", "dix-huit", "dix-neuf"];
+        const dizaines = ["", "dix", "vingt", "trente", "quarante", "cinquante", "soixante", "soixante-dix", "quatre-vingts", "quatre-vingt-dix"];
+        
+        function convertirBloc(n) {
+            let res = "";
+            let c = Math.floor(n / 100);
+            let d = Math.floor((n % 100) / 10);
+            let u = n % 10;
+            
+            if (c > 0) {
+                if (c === 1) res += "cent ";
+                else res += unites[c] + " cent ";
+            }
+            
+            let reste = n % 100;
+            if (reste > 0) {
+                if (reste < 20) {
+                    res += unites[reste] + " ";
+                } else {
+                    if (d === 7) {
+                        res += "soixante-" + (u === 1 ? "et-onze" : unites[10 + u]) + " ";
+                    } else if (d === 9) {
+                        res += "quatre-vingt-" + unites[10 + u] + " ";
+                    } else {
+                        res += dizaines[d] + (u === 1 ? "-et-un" : (u > 0 ? "-" + unites[u] : "")) + " ";
+                    }
+                }
+            }
+            return res.trim();
+        }
+        
+        let resultat = "";
+        let millions = Math.floor(nombre / 1000000);
+        let milliers = Math.floor((nombre % 1000000) / 1000);
+        let reste = nombre % 1000;
+        
+        if (millions > 0) {
+            resultat += convertirBloc(millions) + " million" + (millions > 1 ? "s" : "") + " ";
+        }
+        
+        if (milliers > 0) {
+            if (milliers === 1) resultat += "mille ";
+            else resultat += convertirBloc(milliers) + " mille ";
+        }
+        
+        if (reste > 0) {
+            resultat += convertirBloc(reste);
+        }
+        
+        return resultat.trim().replace(/\s+/g, ' ');
+    }
 
-function generateReceiptNumber(){
+    function formatMontantLettreGlobal(montant) {
+        if (!montant || montant <= 0) return "ZÉRO FRANC CFA";
+        const lettres = nombreEnLettres(montant).toUpperCase();
+        return `${lettres} FRANCS CFA`;
+    }
 
-const now = new Date();
+    // Générateur d'identifiant unique global pour les 3 types de documents
+    function generateGlobalNumber() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hour = String(now.getHours()).padStart(2, '0');
+        const minute = String(now.getMinutes()).padStart(2, '0');
+        const second = String(now.getSeconds()).padStart(2, '0');
+        return `FP-${year}${month}${day}${hour}${minute}${second}`;
+    }
 
-const year = now.getFullYear();
+    const currentDocNumber = generateGlobalNumber();
 
-const month =
-String(now.getMonth()+1).padStart(2,'0');
+    function setStaticDateAndNumber() {
+        const now = new Date();
+        const options = { day: 'numeric', month: 'long', year: 'numeric' };
+        document.getElementById('view-date').innerText = "Ouagadougou, le " + now.toLocaleDateString('fr-FR', options);
+    }
 
-const day =
-String(now.getDate()).padStart(2,'0');
+    function formatNumber(val) {
+        if (!val || isNaN(val)) return "0";
+        return Number(val).toLocaleString('fr-FR');
+    }
 
-const hour =
-String(now.getHours()).padStart(2,'0');
+    // Changement de visibilité fluide selon le type de document sélectionné
+    function switchDocumentType() {
+        const type = document.getElementById('documentType').value;
+        
+        const objetField = document.getElementById('objetField');
+        const factureFields = document.getElementById('factureFields');
+        const tontineFields = document.getElementById('tontineFields');
+        const simpleFields = document.getElementById('simpleFields');
 
-const minute =
-String(now.getMinutes()).padStart(2,'0');
+        const viewTitle = document.getElementById('view-title');
+        const viewRowObjet = document.getElementById('view-row-objet');
+        const viewRowPeriode = document.getElementById('view-row-periode');
+        const viewRowReste = document.getElementById('view-row-reste');
+        const factureTable = document.getElementById('factureTable');
+        const factureTotalBox = document.getElementById('factureTotalBox');
+        const receiptAmounts = document.getElementById('receiptAmounts');
 
-const second =
-String(now.getSeconds()).padStart(2,'0');
+        if (type === 'facture') {
+            viewTitle.innerText = "FACTURE N° " + currentDocNumber;
+            objetField.classList.remove('hidden');
+            factureFields.classList.remove('hidden');
+            tontineFields.classList.add('hidden');
+            simpleFields.classList.add('hidden');
 
-return `${year}${month}${day}${hour}${minute}${second}`;
+            factureTable.classList.remove('hidden');
+            factureTotalBox.classList.remove('hidden');
+            receiptAmounts.classList.add('hidden');
+            viewRowObjet.classList.remove('hidden');
+            viewRowPeriode.classList.add('hidden');
+        } 
+        else if (type === 'tontine') {
+            viewTitle.innerText = "REÇU DE PAIEMENT TONTINE N° " + currentDocNumber;
+            objetField.classList.add('hidden');
+            factureFields.classList.add('hidden');
+            tontineFields.classList.remove('hidden');
+            simpleFields.classList.add('hidden');
 
-}
+            factureTable.classList.add('hidden');
+            factureTotalBox.classList.add('hidden');
+            receiptAmounts.classList.remove('hidden');
+            viewRowObjet.classList.add('hidden');
+            viewRowPeriode.classList.remove('hidden');
+            viewRowReste.classList.remove('hidden');
+        } 
+        else if (type === 'simple') {
+            viewTitle.innerText = "REÇU SIMPLE N° " + currentDocNumber;
+            objetField.classList.remove('hidden');
+            factureFields.classList.add('hidden');
+            tontineFields.classList.add('hidden');
+            simpleFields.classList.remove('hidden');
 
-function getDateTime(){
+            factureTable.classList.add('hidden');
+            factureTotalBox.classList.add('hidden');
+            receiptAmounts.classList.remove('hidden');
+            viewRowObjet.classList.remove('hidden');
+            viewRowPeriode.classList.add('hidden');
+            viewRowReste.classList.add('hidden');
+        }
 
-const now = new Date();
+        updateDocumentPreview();
+    }
 
-return now.toLocaleDateString('fr-FR')
-+ ' à '
-+ now.toLocaleTimeString('fr-FR');
+    // Synchronisation en direct des données saisies dans le modèle A4
+    function updateDocumentPreview() {
+        const type = document.getElementById('documentType').value;
+        
+        const clientVal = document.getElementById('client').value.toUpperCase();
+        const telVal = document.getElementById('telephone').value;
+        const objetVal = document.getElementById('objet').value.toUpperCase();
 
-}
+        document.getElementById('view-client').innerText = clientVal;
+        document.getElementById('view-tel').innerText = telVal;
+        document.getElementById('view-objet').innerText = objetVal;
 
-function formatNumber(value){
+        let calculTotal = 0;
 
-if(!value) return "0";
+        if (type === 'facture') {
+            const qty = parseInt(document.getElementById('quantite').value) || 0;
+            const pu = parseInt(document.getElementById('prix').value) || 0;
+            calculTotal = qty * pu;
 
-return Number(value)
-.toLocaleString('fr-FR');
+            document.getElementById('view-table-designation').innerText = objetVal || "DESIGNATION COMMERCIALE";
+            document.getElementById('view-table-qty').innerText = formatNumber(qty);
+            document.getElementById('view-table-pu').innerText = formatNumber(pu);
+            document.getElementById('view-table-ptotal').innerText = formatNumber(calculTotal);
+            document.getElementById('view-total-general').innerText = formatNumber(calculTotal);
+        } 
+        else if (type === 'tontine') {
+            const verset = parseInt(document.getElementById('montantVerse').value) || 0;
+            const reste = parseInt(document.getElementById('restePayer').value) || 0;
+            const periodeVal = document.getElementById('periode').value.toUpperCase();
+            calculTotal = verset;
 
-}
+            document.getElementById('view-periode').innerText = periodeVal;
+            document.getElementById('view-receipt-main-amount').innerText = "Montant payé : " + formatNumber(verset) + " FCFA";
+            document.getElementById('view-receipt-reste').innerText = formatNumber(reste);
+        } 
+        else if (type === 'simple') {
+            const payeSimple = parseInt(document.getElementById('montantSimple').value) || 0;
+            calculTotal = payeSimple;
 
-function updateReceipt(){
+            document.getElementById('view-receipt-main-amount').innerText = "Montant payé : " + formatNumber(payeSimple) + " FCFA";
+        }
 
-document.getElementById('r_nom').innerText =
-document.getElementById('nom').value;
+        // Ecriture automatique et dynamique du montant en lettres[cite: 1]
+        document.getElementById('view-amount-words').innerText = formatMontantLetterGlobal(calculTotal);
+    }
 
-document.getElementById('r_tel').innerText =
-document.getElementById('telephone').value;
+    async function downloadPDF() {
+        const docRender = document.getElementById('doc-render');
+        
+        const canvas = await html2canvas(docRender, {
+            scale: 3, 
+            useCORS: true,
+            backgroundColor: "#ffffff"
+        });
 
-document.getElementById('r_periode').innerText =
-document.getElementById('periode').value;
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+        });
 
-document.getElementById('r_montant').innerText =
-formatNumber(
-document.getElementById('montant').value
-);
+        pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+        
+        const type = document.getElementById('documentType').value;
+        pdf.save(`${type.toUpperCase()}_${currentDocNumber}.pdf`);
+    }
 
-document.getElementById('r_reste').innerText =
-formatNumber(
-document.getElementById('reste').value
-);
-
-}
-
-document.getElementById('r_numero').innerText =
-generateReceiptNumber();
-
-document.getElementById('r_date').innerText =
-getDateTime();
-
-async function downloadPDF(){
-
-const receipt =
-document.getElementById('receipt');
-
-const canvas =
-await html2canvas(receipt,{
-scale:4,
-useCORS:true,
-backgroundColor:"#ffffff"
-});
-
-const imgData =
-canvas.toDataURL('image/jpeg',1.0);
-
-const { jsPDF } = window.jspdf;
-
-const pdf =
-new jsPDF({
-orientation:'portrait',
-unit:'mm',
-format:'a4'
-});
-
-pdf.addImage(
-imgData,
-'JPEG',
-0,
-0,
-210,
-297
-);
-
-const receiptNumber =
-document.getElementById('r_numero').innerText;
-
-pdf.save(
-`Recu_${receiptNumber}.pdf`
-);
-
-}
-
-updateReceipt();
-
+    setStaticDateAndNumber();
+    switchDocumentType();
 </script>
 
 </body>
