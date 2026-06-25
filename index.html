@@ -361,13 +361,11 @@
 </div>
 
 <script>
-    // Convertisseur de nombres en lettres simplifié
     function conversionEnLettres(montant) {
         if (!montant || montant <= 0) return "ZERO FRANC CFA";
         return formatNumber(montant) + " FRANCS CFA";
     }
 
-    // Générateur d'identifiant unique global
     function generateGlobalNumber() {
         const now = new Date();
         const year = now.getFullYear();
@@ -392,7 +390,6 @@
         return Number(val).toLocaleString('fr-FR');
     }
 
-    // Changement de visibilité selon le type de document sélectionné avec mise à jour des labels (Doit vs Reçu de)
     function switchDocumentType() {
         const type = document.getElementById('documentType').value;
         
@@ -507,34 +504,38 @@
         document.getElementById('view-amount-words').innerText = conversionEnLettres(calculTotal);
     }
 
+    // --- NOUVELLE FONCTION DE TÉLÉCHARGEMENT INFAILLIBLE ---
     async function downloadPDF() {
-        const docRender = document.getElementById('doc-render');
-        
-        // 1. Sauvegarder le style d'origine (responsive / mobile)
-        const originalWidth = docRender.style.width;
-        const originalMinHeight = docRender.style.minHeight;
-        const originalPosition = docRender.style.position;
+        const originalDoc = document.getElementById('doc-render');
 
-        // 2. Forcer les dimensions en pixels réels d'un format A4 standard d'ordinateur
-        docRender.style.width = '794px'; 
-        docRender.style.minHeight = '1123px';
-        docRender.style.position = 'static'; // Évite les décalages de conteneurs parents flex/grid
+        // 1. Créer une zone d'isolation invisible en dehors de l'écran visible
+        const sandbox = document.createElement('div');
+        sandbox.style.position = 'absolute';
+        sandbox.style.left = '-10000px';
+        sandbox.style.top = '0px';
+        sandbox.style.width = '1200px'; // Force un faux écran large d'ordinateur
+        sandbox.style.background = '#eef2f7';
+        document.body.appendChild(sandbox);
 
-        // 3. Capturer le conteneur mis à l'échelle A4 fixe
-        const canvas = await html2canvas(docRender, {
-            scale: 3, // Haute définition
+        // 2. Cloner le document et l'insérer dans notre écran virtuel d'ordinateur
+        const clonedDoc = originalDoc.cloneNode(true);
+        clonedDoc.style.width = '210mm';       // Taille exacte A4 Bureau
+        clonedDoc.style.minHeight = '297mm';   // Hauteur exacte A4 Bureau
+        clonedDoc.style.display = 'flex';
+        sandbox.appendChild(clonedDoc);
+
+        // 3. Capturer le clone figé dans son environnement virtuel d'ordinateur
+        const canvas = await html2canvas(clonedDoc, {
+            scale: 2.5, // Excellente définition sans alourdir le fichier
             useCORS: true,
             backgroundColor: "#ffffff",
-            width: 794,
-            height: 1123
+            logging: false
         });
 
-        // 4. Restaurer instantanément le style d'origine pour l'écran de l'utilisateur
-        docRender.style.width = originalWidth;
-        docRender.style.minHeight = originalMinHeight;
-        docRender.style.position = originalPosition;
+        // 4. Nettoyer le code en supprimant l'environnement de test virtuel
+        sandbox.remove();
 
-        // 5. Générer et enregistrer le fichier PDF
+        // 5. Convertir en PDF et enregistrer
         const imgData = canvas.toDataURL('image/jpeg', 1.0);
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF({
