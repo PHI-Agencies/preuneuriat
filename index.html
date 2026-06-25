@@ -504,38 +504,47 @@
         document.getElementById('view-amount-words').innerText = conversionEnLettres(calculTotal);
     }
 
-    // --- NOUVELLE FONCTION DE TÉLÉCHARGEMENT INFAILLIBLE ---
+    // --- MISE À JOUR MAJEURE POUR LES IPHONES ET PETITS ÉCRANS ---
     async function downloadPDF() {
         const originalDoc = document.getElementById('doc-render');
 
-        // 1. Créer une zone d'isolation invisible en dehors de l'écran visible
+        // 1. Créer un bac à sable isolé
         const sandbox = document.createElement('div');
         sandbox.style.position = 'absolute';
-        sandbox.style.left = '-10000px';
+        sandbox.style.left = '-20000px';
         sandbox.style.top = '0px';
-        sandbox.style.width = '1200px'; // Force un faux écran large d'ordinateur
-        sandbox.style.background = '#eef2f7';
+        sandbox.style.width = '1000px'; 
+        sandbox.style.background = '#ffffff';
         document.body.appendChild(sandbox);
 
-        // 2. Cloner le document et l'insérer dans notre écran virtuel d'ordinateur
+        // 2. Cloner et forcer le style en dimensions absolues CSS (évite l'empilement Retina/Safari)
         const clonedDoc = originalDoc.cloneNode(true);
-        clonedDoc.style.width = '210mm';       // Taille exacte A4 Bureau
-        clonedDoc.style.minHeight = '297mm';   // Hauteur exacte A4 Bureau
+        clonedDoc.style.width = '794px';       // Équivalent exact de 210mm en px
+        clonedDoc.style.height = '1123px';     // Équivalent exact de 297mm en px
+        clonedDoc.style.minHeight = '1123px';
+        clonedDoc.style.maxHeight = '1123px';
         clonedDoc.style.display = 'flex';
+        clonedDoc.style.flexDirection = 'column';
+        clonedDoc.style.transform = 'none';    // Désactive les effets de bord de zoom éventuels
+        
         sandbox.appendChild(clonedDoc);
 
-        // 3. Capturer le clone figé dans son environnement virtuel d'ordinateur
+        // 3. Capture avec options spécifiques anti-Retina / Anti-iOS zoom
         const canvas = await html2canvas(clonedDoc, {
-            scale: 2.5, // Excellente définition sans alourdir le fichier
+            scale: 2.5,             // Facteur de clarté optimal sans pixellisation
             useCORS: true,
             backgroundColor: "#ffffff",
-            logging: false
+            logging: false,
+            width: 794,             // Forcer le recadrage photo à la dimension A4 exacte
+            height: 1123,
+            windowWidth: 1200,      // Simuler une largeur de bureau complète pour l'interpréteur Safari
+            windowHeight: 1500
         });
 
-        // 4. Nettoyer le code en supprimant l'environnement de test virtuel
+        // 4. Nettoyage
         sandbox.remove();
 
-        // 5. Convertir en PDF et enregistrer
+        // 5. Export PDF standardisé
         const imgData = canvas.toDataURL('image/jpeg', 1.0);
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF({
