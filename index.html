@@ -238,7 +238,6 @@
 
 <div class="container">
 
-    <!-- Formulaire à Gauche -->
     <div class="card">
         <h2>Création de Document</h2>
         
@@ -249,19 +248,17 @@
             <option value="simple">Reçu Simple</option>
         </select>
 
-        <label>Nom du Client / Doit</label>
+        <label id="form-client-label">Nom du Client / Doit</label>
         <input type="text" id="client" placeholder="Ex: TIKO SOLUTIONS SARL" oninput="updateDocumentPreview()">
 
         <label>Téléphone Client</label>
         <input type="text" id="telephone" placeholder="Ex: 25 34 18 18" oninput="updateDocumentPreview()">
 
-        <!-- Champs Dynamiques : Facture / Reçu Simple -->
         <div id="objetField">
             <label>Objet / Désignation</label>
             <input type="text" id="objet" placeholder="Ex: Serviettes hygiéniques féminines..." oninput="updateDocumentPreview()">
         </div>
 
-        <!-- Champs Spécifiques Facture (Calculés) -->
         <div id="factureFields">
             <label>Quantité</label>
             <input type="number" id="quantite" value="1" min="1" oninput="updateDocumentPreview()">
@@ -270,7 +267,6 @@
             <input type="number" id="prix" value="0" min="0" oninput="updateDocumentPreview()">
         </div>
 
-        <!-- Champs Spécifiques Tontine -->
         <div id="tontineFields" class="hidden">
             <label>Période tontine</label>
             <input type="text" id="periode" placeholder="Ex: Janvier 2026" oninput="updateDocumentPreview()">
@@ -282,7 +278,6 @@
             <input type="number" id="restePayer" value="0" min="0" oninput="updateDocumentPreview()">
         </div>
 
-        <!-- Champ Montant Unique pour Reçu Simple -->
         <div id="simpleFields" class="hidden">
             <label>Montant Payé (FCFA)</label>
             <input type="number" id="montantSimple" value="0" min="0" oninput="updateDocumentPreview()">
@@ -291,11 +286,9 @@
         <button onclick="downloadPDF()">📄 Télécharger le Document PDF</button>
     </div>
 
-    <!-- Aperçu A4 en Temps Réel à Droite -->
     <div class="preview-scroll">
         <div id="doc-render">
             
-            <!-- En-tête Commun -->
             <img src="logo.jpg" alt="LOGO FASOPRENEURIAT" class="logo">
             <div class="company">FASOPRENEURIAT</div>
             
@@ -309,15 +302,13 @@
             <div class="doc-date" id="view-date">Ouagadougou, le --/--/----</div>
             <div class="doc-title" id="view-title">FACTURE N° --</div>
 
-            <!-- Infos Client -->
             <div class="details-zone">
-                <div><b>Client :</b> <span id="view-client"></span></div>
+                <div><b id="view-client-label">Doit :</b> <span id="view-client"></span></div>
                 <div><b>Tél :</b> <span id="view-tel"></span></div>
                 <div id="view-row-objet"><b>Objet :</b> <span id="view-objet"></span></div>
                 <div id="view-row-periode" class="hidden"><b>Période :</b> <span id="view-periode"></span></div>
             </div>
 
-            <!-- Tableau (Affiché uniquement pour la Facture) -->
             <table id="factureTable">
                 <thead>
                     <tr>
@@ -337,22 +328,18 @@
                 </tbody>
             </table>
 
-            <!-- Zone des montants pour les reçus -->
             <div id="receiptAmounts" class="hidden" style="font-size: 16px; line-height: 2;">
                 <div class="amount-box" style="text-align: left;" id="view-receipt-main-amount">Montant payé : 0 FCFA</div>
                 <div id="view-row-reste" class="hidden"><b>Reste à payer :</b> <span id="view-receipt-reste">0</span> FCFA</div>
             </div>
 
-            <!-- Total Général (Facture) -->
             <div class="amount-box" id="factureTotalBox">TOTAL : <span id="view-total-general">0</span> FCFA</div>
 
-            <!-- Arrêté en Lettres -->
             <div class="words-box">
                 Arrêtée la présente facture à la somme de : <br>
                 <span id="view-amount-words" style="text-transform: uppercase;">ZERO FRANC CFA</span>
             </div>
 
-            <!-- Bloc Signature Directeur -->
             <div class="signature-zone">
                 <p>Le Directeur</p>
                 <img src="cachet-signature.jpg" alt="Cachet & Signature">
@@ -362,7 +349,6 @@
                 </div>
             </div>
 
-            <!-- Pied de page officiel -->
             <div class="footer-company">
                 Société Anonyme à Responsabilité Limitée au Capital de : 1 000 000 FCFA - Siège Social : Ouagadougou - Secteur 13<br>
                 07 BP 8753 Ouagadougou 07 - Cél : (226) 70 73 87 17<br>
@@ -375,13 +361,13 @@
 </div>
 
 <script>
-    // Convertisseur de nombres en lettres simplifié (Extensible si besoin)
+    // Convertisseur de nombres en lettres simplifié
     function conversionEnLettres(montant) {
         if (!montant || montant <= 0) return "ZERO FRANC CFA";
         return formatNumber(montant) + " FRANCS CFA";
     }
 
-    // Générateur d'identifiant unique global pour les 3 types de documents
+    // Générateur d'identifiant unique global
     function generateGlobalNumber() {
         const now = new Date();
         const year = now.getFullYear();
@@ -406,10 +392,13 @@
         return Number(val).toLocaleString('fr-FR');
     }
 
-    // Changement de visibilité fluide selon le type de document sélectionné
+    // Changement de visibilité selon le type de document sélectionné avec mise à jour des labels (Doit vs Reçu de)
     function switchDocumentType() {
         const type = document.getElementById('documentType').value;
         
+        const formClientLabel = document.getElementById('form-client-label');
+        const viewClientLabel = document.getElementById('view-client-label');
+
         const objetField = document.getElementById('objetField');
         const factureFields = document.getElementById('factureFields');
         const tontineFields = document.getElementById('tontineFields');
@@ -425,6 +414,9 @@
 
         if (type === 'facture') {
             viewTitle.innerText = "FACTURE N° " + currentDocNumber;
+            formClientLabel.innerText = "Nom du Client / Doit";
+            viewClientLabel.innerText = "Doit :";
+
             objetField.classList.remove('hidden');
             factureFields.classList.remove('hidden');
             tontineFields.classList.add('hidden');
@@ -436,39 +428,41 @@
             viewRowObjet.classList.remove('hidden');
             viewRowPeriode.classList.add('hidden');
         } 
-        else if (type === 'tontine') {
-            viewTitle.innerText = "REÇU DE PAIEMENT TONTINE N° " + currentDocNumber;
-            objetField.classList.add('hidden');
-            factureFields.classList.add('hidden');
-            tontineFields.classList.remove('hidden');
-            simpleFields.classList.add('hidden');
+        else {
+            formClientLabel.innerText = "Nom du Client";
+            viewClientLabel.innerText = "Reçu de :";
 
             factureTable.classList.add('hidden');
             factureTotalBox.classList.add('hidden');
             receiptAmounts.classList.remove('hidden');
-            viewRowObjet.classList.add('hidden');
-            viewRowPeriode.classList.remove('hidden');
-            viewRowReste.classList.remove('hidden');
-        } 
-        else if (type === 'simple') {
-            viewTitle.innerText = "REÇU SIMPLE N° " + currentDocNumber;
-            objetField.classList.remove('hidden');
-            factureFields.classList.add('hidden');
-            tontineFields.classList.add('hidden');
-            simpleFields.classList.remove('hidden');
 
-            factureTable.classList.add('hidden');
-            factureTotalBox.classList.add('hidden');
-            receiptAmounts.classList.remove('hidden');
-            viewRowObjet.classList.remove('hidden');
-            viewRowPeriode.classList.add('hidden');
-            viewRowReste.classList.add('hidden');
+            if (type === 'tontine') {
+                viewTitle.innerText = "REÇU DE PAIEMENT TONTINE N° " + currentDocNumber;
+                objetField.classList.add('hidden');
+                factureFields.classList.add('hidden');
+                tontineFields.classList.remove('hidden');
+                simpleFields.classList.add('hidden');
+
+                viewRowObjet.classList.add('hidden');
+                viewRowPeriode.classList.remove('hidden');
+                viewRowReste.classList.remove('hidden');
+            } 
+            else if (type === 'simple') {
+                viewTitle.innerText = "REÇU SIMPLE N° " + currentDocNumber;
+                objetField.classList.remove('hidden');
+                factureFields.classList.add('hidden');
+                tontineFields.classList.add('hidden');
+                simpleFields.classList.remove('hidden');
+
+                viewRowObjet.classList.remove('hidden');
+                viewRowPeriode.classList.add('hidden');
+                viewRowReste.classList.add('hidden');
+            }
         }
 
         updateDocumentPreview();
     }
 
-    // Synchronisation en direct des données saisies dans le modèle A4
     function updateDocumentPreview() {
         const type = document.getElementById('documentType').value;
         
@@ -510,19 +504,37 @@
             document.getElementById('view-receipt-main-amount').innerText = "Montant payé : " + formatNumber(payeSimple) + " FCFA";
         }
 
-        // Ecriture du montant global en lettres tout en bas
         document.getElementById('view-amount-words').innerText = conversionEnLettres(calculTotal);
     }
 
     async function downloadPDF() {
         const docRender = document.getElementById('doc-render');
         
+        // 1. Sauvegarder le style d'origine (responsive / mobile)
+        const originalWidth = docRender.style.width;
+        const originalMinHeight = docRender.style.minHeight;
+        const originalPosition = docRender.style.position;
+
+        // 2. Forcer les dimensions en pixels réels d'un format A4 standard d'ordinateur
+        docRender.style.width = '794px'; 
+        docRender.style.minHeight = '1123px';
+        docRender.style.position = 'static'; // Évite les décalages de conteneurs parents flex/grid
+
+        // 3. Capturer le conteneur mis à l'échelle A4 fixe
         const canvas = await html2canvas(docRender, {
-            scale: 3, 
+            scale: 3, // Haute définition
             useCORS: true,
-            backgroundColor: "#ffffff"
+            backgroundColor: "#ffffff",
+            width: 794,
+            height: 1123
         });
 
+        // 4. Restaurer instantanément le style d'origine pour l'écran de l'utilisateur
+        docRender.style.width = originalWidth;
+        docRender.style.minHeight = originalMinHeight;
+        docRender.style.position = originalPosition;
+
+        // 5. Générer et enregistrer le fichier PDF
         const imgData = canvas.toDataURL('image/jpeg', 1.0);
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF({
