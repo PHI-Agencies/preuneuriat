@@ -1,567 +1,639 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FASOPRENEURIAT - Gestion des Documents</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-        body {
-            background: #eef2f7;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1500px;
-            margin: auto;
-            display: grid;
-            grid-template-columns: 450px 1fr;
-            gap: 25px;
-        }
-        .card {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 5px 25px rgba(0,0,0,.08);
-            height: fit-content;
-        }
-        h2 {
-            color: #0056b3;
-            margin-bottom: 20px;
-            font-size: 22px;
-            border-bottom: 2px solid #f1f1f1;
-            padding-bottom: 10px;
-        }
-        label {
-            display: block;
-            margin-top: 12px;
-            font-weight: bold;
-            color: #333;
-            font-size: 14px;
-        }
-        input, select, textarea {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
-            outline: none;
-        }
-        input:focus, select:focus {
-            border-color: #0056b3;
-        }
-        button {
-            width: 100%;
-            padding: 14px;
-            margin-top: 25px;
-            border: none;
-            border-radius: 10px;
-            background: #0056b3;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        button:hover {
-            background: #004085;
-        }
-        .hidden {
-            display: none !important;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FASOPRENEURIAT — Gestion des Documents</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --navy:#0a2f5e; --blue:#0f67c2; --blue2:#3a8de6; --gold:#f4e816; --gold2:#fff35c;
+  --bg:#f3f7fc; --ink:#1b2433; --muted:#6b7686; --line:#e3e8ef;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+html{scroll-behavior:smooth}
+body{background:radial-gradient(1200px 600px at 10% -10%,#dbe8fb 0%,transparent 60%),radial-gradient(900px 500px at 100% 0%,#ffffff 0%,transparent 55%),var(--bg);color:var(--ink);min-height:100vh}
+.hidden{display:none!important}
 
-        /* --- PREVIEW ZONE (A4 Format) --- */
-        .preview-scroll {
-            overflow-x: auto;
-            display: flex;
-            justify-content: center;
-        }
-        #doc-render {
-            width: 210mm;
-            min-height: 297mm;
-            background: white;
-            padding: 20mm;
-            position: relative;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-        }
-        .logo {
-            display: block;
-            margin: auto;
-            width: 35mm;
-            height: auto;
-        }
-        .company {
-            text-align: center;
-            font-size: 26px;
-            font-weight: bold;
-            margin-top: 10px;
-            color: #0056b3;
-            letter-spacing: 1px;
-        }
-        .activities {
-            margin-top: 12px;
-            font-size: 11px;
-            line-height: 1.5;
-            text-align: center;
-            font-weight: bold;
-            color: #444;
-            text-transform: uppercase;
-        }
-        .doc-date {
-            margin-top: 25px;
-            text-align: right;
-            font-size: 15px;
-            font-weight: bold;
-        }
-        .doc-title {
-            text-align: center;
-            font-size: 22px;
-            font-weight: bold;
-            margin: 25px 0;
-            color: #111;
-            text-transform: uppercase;
-            border-bottom: 2px dashed #0056b3;
-            padding-bottom: 8px;
-        }
-        .details-zone {
-            margin-bottom: 20px;
-            font-size: 16px;
-            line-height: 1.6;
-        }
-        .details-zone b {
-            color: #333;
-            display: inline-block;
-            width: 120px;
-        }
-        
-        /* Table Facture */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            font-size: 15px;
-        }
-        table th {
-            background: #f8f9fa;
-            font-weight: bold;
-        }
-        table th, table td {
-            border: 1px solid #000;
-            padding: 12px;
-            text-align: center;
-        }
-        
-        .amount-box {
-            font-size: 22px;
-            font-weight: bold;
-            color: #28a745;
-            margin-top: 20px;
-            text-align: right;
-        }
-        .words-box {
-            margin-top: 25px;
-            font-size: 15px;
-            line-height: 1.6;
-            font-weight: bold;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
-            border-left: 4px solid #0056b3;
-        }
-        
-        /* Zone de Signature */
-        .signature-zone {
-            margin-top: auto; 
-            align-self: flex-end;
-            text-align: center;
-            width: 250px;
-            padding-top: 40px;
-            margin-bottom: 20mm;
-        }
-        .signature-zone p {
-            font-weight: bold;
-            font-size: 16px;
-            margin-bottom: 10px;
-            text-decoration: underline;
-        }
-        .signature-zone img {
-            width: 100%;
-            max-height: 80px;
-            object-fit: contain;
-        }
-        .directeur-name {
-            font-weight: bold;
-            font-size: 15px;
-            margin-top: 5px;
-        }
-        .directeur-title {
-            display: block;
-            font-weight: normal;
-            font-size: 12px;
-            color: #555;
-        }
+/* ---------- Top bar ---------- */
+.topbar{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(15,103,194,.97);color:#fff;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 6px 30px rgba(11,31,58,.25);border-bottom:3px solid var(--gold)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-badge{width:38px;height:38px;border-radius:11px;background:var(--gold);display:grid;place-items:center;color:var(--blue);font-weight:900;font-size:18px;box-shadow:0 4px 14px rgba(244,232,22,.5)}
+.brand b{font-size:17px;letter-spacing:.5px}
+.brand small{display:block;font-size:11px;opacity:.7;letter-spacing:1.5px;text-transform:uppercase}
+.tabs{display:none;gap:6px;background:rgba(255,255,255,.1);padding:4px;border-radius:12px}
+.tabs button{all:unset;cursor:pointer;padding:8px 16px;border-radius:9px;font-size:13px;font-weight:700;color:#cfd9e8;transition:.25s}
+.tabs button.active{background:#fff;color:var(--navy)}
 
-        /* Pied de page */
-        .footer-company {
-            position: absolute;
-            bottom: 8mm;
-            left: 15mm;
-            right: 15mm;
-            font-size: 10px;
-            line-height: 1.5;
-            text-align: center;
-            border-top: 1px solid #ccc;
-            padding-top: 8px;
-            color: #444;
-        }
+/* ---------- Layout ---------- */
+.container{max-width:1600px;margin:24px auto;padding:0 20px;display:grid;grid-template-columns:440px 1fr;gap:26px;align-items:start}
+.panel{background:rgba(255,255,255,.9);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.8);border-radius:20px;padding:26px;box-shadow:0 12px 40px rgba(20,40,80,.10);position:sticky;top:84px;max-height:calc(100vh - 104px);overflow:auto;animation:rise .6s ease both}
+.panel h2{font-size:20px;color:var(--navy);margin-bottom:4px}
+.panel .sub{color:var(--muted);font-size:13px;margin-bottom:18px}
 
-        @media(max-width: 1200px) {
-            .container {
-                grid-template-columns: 1fr;
-            }
-            .preview-scroll {
-                justify-content: flex-start;
-            }
-        }
-    </style>
+/* type selector (cards) */
+.types{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
+.type-card{cursor:pointer;border:2px solid var(--line);border-radius:14px;padding:12px;background:#fff;transition:.25s;display:flex;flex-direction:column;gap:4px;user-select:none}
+.type-card .ic{width:38px;height:38px;border-radius:10px;background:#e8f1fc;color:var(--blue);display:grid;place-items:center;margin-bottom:4px;transition:.25s}
+.type-card.active .ic{background:var(--blue);color:#fff}
+.type-card .ic svg,.btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px}
+.btn svg{width:18px;height:18px}
+.type-card b{font-size:13px;color:var(--navy)}
+.type-card span{font-size:11px;color:var(--muted)}
+.type-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(20,40,80,.12)}
+.type-card.active{border-color:var(--blue);background:linear-gradient(160deg,#f2f8ff,#fff);box-shadow:0 8px 22px rgba(0,86,179,.18)}
+.type-card.cafe.active{border-color:var(--blue);background:linear-gradient(160deg,#f2f8ff,#fff);box-shadow:0 8px 22px rgba(0,86,179,.18)}
+
+label{display:block;margin-top:14px;font-weight:700;color:#2b3547;font-size:13px}
+input,select{width:100%;padding:12px 14px;margin-top:6px;border:1.5px solid var(--line);border-radius:11px;font-size:15px;outline:none;background:#fff;transition:.2s;color:var(--ink)}
+input:focus,select:focus{border-color:var(--blue2);box-shadow:0 0 0 4px rgba(43,125,233,.15)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.hint{font-size:12.5px;color:#6b6000;margin-top:8px;line-height:1.4;background:#fffbd0;border-left:3px solid var(--gold);padding:8px 10px;border-radius:6px;font-weight:600}
+.alert{margin-top:12px;padding:10px 12px;border-radius:10px;font-size:12.5px;font-weight:600;background:#fff3f1;color:#b3261e;border:1px solid #f5c6c1}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.chip{cursor:pointer;padding:7px 12px;border-radius:999px;border:1.5px solid var(--line);font-size:12px;font-weight:700;background:#fff;transition:.2s}
+.chip.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.sep{height:1px;background:var(--line);margin:20px 0 4px}
+.section-title{margin-top:18px;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue);font-weight:800}
+
+.btn{width:100%;padding:15px;margin-top:22px;border:none;border-radius:13px;background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;font-size:16px;font-weight:800;cursor:pointer;transition:.25s;box-shadow:0 10px 24px rgba(0,86,179,.35);letter-spacing:.3px}
+.btn:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(0,86,179,.45)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.7;cursor:wait}
+.btn.ghost{background:#fff;color:var(--navy);border:1.5px solid var(--line);box-shadow:none;margin-top:10px;font-size:14px;padding:12px}
+
+/* ---------- Preview ---------- */
+.preview-area{min-width:0;animation:rise .7s .1s ease both}
+.preview-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;color:var(--muted);font-size:13px;font-weight:600}
+.preview-bar .pill{background:#fff;padding:6px 12px;border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.scaler-wrap{width:100%;display:flex;justify-content:center}
+.scaler{transform-origin:top left;filter:drop-shadow(0 18px 40px rgba(20,40,80,.22))}
+
+/* ---------- DOCUMENT A4 (px fixes: 794 x 1123) ---------- */
+#doc-render{
+  --accent:#0f67c2; --accent2:#e6f0fb;
+  width:794px;height:1123px;background:#fff;padding:44px 56px;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;color:#111;
+}
+#doc-render[data-theme="cafe"]{--accent:#0a4a96;--accent2:#e6f0fb}
+#doc-render::before{content:"";position:absolute;left:0;top:0;right:0;height:10px;background:linear-gradient(90deg,var(--accent) 0,var(--accent) 75%,var(--gold) 75%,var(--gold) 100%)}
+.logo{display:block;margin:0 auto;width:100px;height:auto}
+.company{text-align:center;font-size:26px;font-weight:800;margin-top:6px;color:var(--accent);letter-spacing:1px}
+.activities{margin-top:8px;font-size:10.5px;line-height:1.5;text-align:center;font-weight:700;color:#444;text-transform:uppercase}
+
+.cafe-head{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-bottom:12px;border-bottom:2px solid var(--gold)}
+.cafe-head .l img{height:92px;width:auto;display:block}
+.cafe-head .r{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.cafe-head .r small{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:#777;font-weight:700}
+.cafe-head .r img{height:56px;width:auto;display:block}
+.cafe-head .r b{font-size:15px;color:var(--blue);letter-spacing:1px}
+.cafe-tag{text-align:center;font-size:10.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#555;margin-top:8px}
+
+.doc-date{margin-top:14px;text-align:right;font-size:14px;font-weight:700}
+.doc-title{text-align:center;font-size:20px;font-weight:800;margin:14px 0 16px;color:#111;text-transform:uppercase;border-bottom:2px dashed var(--accent);padding-bottom:8px}
+.details-zone{margin-bottom:12px;font-size:15px;line-height:1.7}
+.details-zone b{color:#333;display:inline-block;width:130px}
+.details-zone span{font-weight:600}
+
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
+table th{background:var(--accent2);font-weight:800}
+table th,table td{border:1px solid #000;padding:10px;text-align:center}
+.amount-box{font-size:21px;font-weight:800;color:var(--accent);margin-top:14px;text-align:right}
+.words-box{margin-top:16px;font-size:14px;line-height:1.5;font-weight:700;background:#f8f9fa;padding:12px 14px;border-radius:6px;border-left:4px solid var(--gold)}
+
+/* Café summary */
+.sum-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.sum{border:1.5px solid #222;border-radius:8px;padding:9px 6px;text-align:center}
+.sum small{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#555;font-weight:700}
+.sum b{display:block;font-size:16px;margin-top:3px}
+.sum.hi{background:var(--accent);color:#fff;border-color:var(--accent)}
+.sum.hi small{color:#dbe8fb}
+.badge{display:inline-block;margin-top:12px;padding:6px 16px;border-radius:999px;font-size:13px;font-weight:800;letter-spacing:.8px}
+.badge.ok{background:var(--accent);color:#fff;border:1.5px solid var(--accent)}
+.badge.part{background:#fffbd0;color:#6b6000;border:1.5px solid #cdbf00}
+.sched-title{margin-top:14px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--accent)}
+.sched td,.sched th{padding:6px;font-size:12.5px}
+.st-paid{color:var(--accent);font-weight:800}.st-now{color:var(--accent);font-weight:800;background:#e8f1fc}.st-next{color:#7a6e00;font-weight:700}
+
+.signature-zone{margin-top:auto;align-self:flex-end;text-align:center;width:240px;margin-bottom:66px}
+.signature-zone p{font-weight:800;font-size:15px;margin-bottom:6px;text-decoration:underline}
+.signature-zone img{width:100%;max-height:84px;object-fit:contain}
+.directeur-name{font-weight:800;font-size:14px;margin-top:4px}
+.directeur-title{display:block;font-weight:400;font-size:11px;color:#555}
+.footer-company{position:absolute;bottom:16px;left:40px;right:40px;font-size:9.5px;line-height:1.5;text-align:center;border-top:1px solid #ccc;padding-top:6px;color:#444}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,40px);background:var(--navy);color:#fff;padding:12px 20px;border-radius:12px;font-weight:700;font-size:14px;opacity:0;transition:.4s;z-index:99;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+@media(max-width:1100px){
+  .container{grid-template-columns:1fr;margin-top:14px;padding:0 12px}
+  .panel{position:static;max-height:none}
+  .tabs{display:flex}
+  body.view-form .preview-area{display:none}
+  body.view-preview .panel{display:none}
+}
+</style>
 </head>
-<body>
+<body class="view-form">
+
+<header class="topbar">
+  <div class="brand"><div class="brand-badge">F</div><div><b>FASOPRENEURIAT</b><small>Gestion des documents</small></div></div>
+  <div class="tabs">
+    <button id="tab-form" class="active" onclick="setView('form')">Saisie</button>
+    <button id="tab-preview" onclick="setView('preview')">Aperçu</button>
+  </div>
+</header>
 
 <div class="container">
 
-    <div class="card">
-        <h2>Création de Document</h2>
-        
-        <label>Type de document</label>
-        <select id="documentType" onchange="switchDocumentType()">
-            <option value="facture">Facture Officielle</option>
-            <option value="tontine">Reçu Tontine</option>
-            <option value="simple">Reçu Simple</option>
-        </select>
+  <!-- ========== FORM ========== -->
+  <section class="panel">
+    <h2>Nouveau document</h2>
+    <p class="sub">Choisissez le type, remplissez, téléchargez en A4.</p>
 
-        <label id="form-client-label">Nom du Client / Doit</label>
-        <input type="text" id="client" placeholder="Ex: TIKO SOLUTIONS SARL" oninput="updateDocumentPreview()">
-
-        <label>Téléphone Client</label>
-        <input type="text" id="telephone" placeholder="Ex: 25 34 18 18" oninput="updateDocumentPreview()">
-
-        <div id="objetField">
-            <label>Objet / Désignation</label>
-            <input type="text" id="objet" placeholder="Ex: Serviettes hygiéniques féminines..." oninput="updateDocumentPreview()">
-        </div>
-
-        <div id="factureFields">
-            <label>Quantité</label>
-            <input type="number" id="quantite" value="1" min="1" oninput="updateDocumentPreview()">
-
-            <label>Prix Unitaire (FCFA)</label>
-            <input type="number" id="prix" value="0" min="0" oninput="updateDocumentPreview()">
-        </div>
-
-        <div id="tontineFields" class="hidden">
-            <label>Période tontine</label>
-            <input type="text" id="periode" placeholder="Ex: Janvier 2026" oninput="updateDocumentPreview()">
-
-            <label>Montant Versé (FCFA)</label>
-            <input type="number" id="montantVerse" value="0" min="0" oninput="updateDocumentPreview()">
-
-            <label>Reste à payer (FCFA)</label>
-            <input type="number" id="restePayer" value="0" min="0" oninput="updateDocumentPreview()">
-        </div>
-
-        <div id="simpleFields" class="hidden">
-            <label>Montant Payé (FCFA)</label>
-            <input type="number" id="montantSimple" value="0" min="0" oninput="updateDocumentPreview()">
-        </div>
-
-        <button onclick="downloadPDF()">📄 Télécharger le Document PDF</button>
+    <div class="types">
+      <div class="type-card active" data-type="facture" onclick="selectType('facture')"><div class="ic"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></div><b>Facture</b><span>Officielle</span></div>
+      <div class="type-card" data-type="tontine" onclick="selectType('tontine')"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M17 14.2c2.4.3 4 2.2 4 4.8"/></svg></div><b>Reçu Tontine</b><span>Versements</span></div>
+      <div class="type-card" data-type="simple" onclick="selectType('simple')"><div class="ic"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></div><b>Reçu Simple</b><span>Paiement</span></div>
+      <div class="type-card cafe" data-type="cafe" onclick="selectType('cafe')"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 10h2a2.5 2.5 0 0 1 0 5h-2"/><path d="M8 3v3M12 3v3"/></svg></div><b>Café des Entrepreneurs</b><span>Participation</span></div>
     </div>
 
-    <div class="preview-scroll">
-        <div id="doc-render">
-            
-            <img src="logo.jpg" alt="LOGO FASOPRENEURIAT" class="logo">
+    <div class="sep"></div>
+
+    <label id="form-client-label">Nom du Client / Doit</label>
+    <input type="text" id="client" placeholder="Ex: TIKO SOLUTIONS SARL" oninput="update()">
+
+    <label>Téléphone</label>
+    <input type="tel" id="telephone" placeholder="Ex: 25 34 18 18" oninput="update()">
+
+    <div data-form="facture simple">
+      <label>Objet / Désignation</label>
+      <input type="text" id="objet" placeholder="Ex: Serviettes hygiéniques féminines..." oninput="update()">
+    </div>
+
+    <!-- FACTURE -->
+    <div data-form="facture">
+      <div class="row2">
+        <div><label>Quantité</label><input type="number" id="quantite" value="1" min="1" inputmode="numeric" oninput="update()"></div>
+        <div><label>Prix unitaire (FCFA)</label><input type="number" id="prix" value="0" min="0" inputmode="numeric" oninput="update()"></div>
+      </div>
+    </div>
+
+    <!-- TONTINE -->
+    <div data-form="tontine">
+      <label>Période tontine</label>
+      <input type="text" id="periode" placeholder="Ex: Janvier 2026" oninput="update()">
+      <div class="row2">
+        <div><label>Montant versé</label><input type="number" id="montantVerse" value="0" min="0" inputmode="numeric" oninput="update()"></div>
+        <div><label>Reste à payer</label><input type="number" id="restePayer" value="0" min="0" inputmode="numeric" oninput="update()"></div>
+      </div>
+    </div>
+
+    <!-- SIMPLE -->
+    <div data-form="simple">
+      <label>Montant payé (FCFA)</label>
+      <input type="number" id="montantSimple" value="0" min="0" inputmode="numeric" oninput="update()">
+    </div>
+
+    <!-- CAFE -->
+    <div data-form="cafe">
+      <label>Édition / Date de la session</label>
+      <input type="text" id="session" placeholder="Ex: Édition de décembre 2026" oninput="update()">
+
+      <div class="section-title">Participation & mode de paiement</div>
+      <label>Frais de participation total (FCFA)</label>
+      <input type="number" id="cafeTotal" value="12000" min="0" inputmode="numeric" oninput="recalcPlan()">
+
+      <label>Mode de règlement</label>
+      <div class="chips" id="planChips">
+        <div class="chip active" data-plan="full" onclick="setPlan('full')">Intégral</div>
+        <div class="chip" data-plan="2" onclick="setPlan('2')">2 tranches</div>
+        <div class="chip" data-plan="3" onclick="setPlan('3')">3 tranches</div>
+        <div class="chip" data-plan="custom" onclick="setPlan('custom')">Libre</div>
+      </div>
+
+      <div id="trancheRow" class="hidden">
+        <label>Tranche réglée aujourd'hui</label>
+        <select id="trancheNum" onchange="recalcPlan()"></select>
+      </div>
+
+      <div class="row2">
+        <div><label>Déjà versé avant</label><input type="number" id="cafeDeja" value="0" min="0" inputmode="numeric" oninput="manualEdit()"></div>
+        <div><label>Versé ce jour</label><input type="number" id="cafeVerse" value="12000" min="0" inputmode="numeric" oninput="manualEdit()"></div>
+      </div>
+      <div class="hint" id="cafeHint">Reste à payer : 0 FCFA</div>
+      <div id="cafeAlert" class="alert hidden">Le cumul dépasse le montant total de participation.</div>
+    </div>
+
+    <!-- Mode de paiement (reçus) -->
+    <div data-form="tontine simple cafe">
+      <label>Moyen de paiement</label>
+      <select id="moyen" onchange="update()">
+        <option value="">— Non précisé —</option>
+        <option>Espèces</option>
+        <option>Orange Money</option>
+        <option>Moov Money</option>
+        <option>Coris Money</option>
+        <option>Virement bancaire</option>
+        <option>Chèque</option>
+      </select>
+    </div>
+
+    <button class="btn" id="dlBtn" onclick="downloadPDF()"><svg viewBox="0 0 24 24"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>Télécharger le PDF (A4)</button>
+    <button class="btn ghost" onclick="newDoc()"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>Nouveau document</button>
+  </section>
+
+  <!-- ========== PREVIEW ========== -->
+  <section class="preview-area">
+    <div class="preview-bar"><span class="pill">Aperçu en direct · Format A4</span><span id="numPill" class="pill"></span></div>
+    <div class="scaler-wrap" id="scalerWrap">
+      <div class="scaler" id="scaler">
+
+        <div id="doc-render" data-theme="fasop">
+
+          <!-- En-tête standard -->
+          <div id="head-std">
+            <img src="logo.jpg" alt="Logo FASOPRENEURIAT" class="logo" onerror="this.style.display='none'">
             <div class="company">FASOPRENEURIAT</div>
-            
             <div class="activities">
-                Accompagnement aux Entreprises (Services Techniques et Financiers)<br>
-                Production et Commercialisation de Couches Lavables<br>
-                Conseil pour les Affaires et le Management<br>
-                Prestations de Services & Divers
+              Accompagnement aux Entreprises (Services Techniques et Financiers)<br>
+              Production et Commercialisation de Couches Lavables<br>
+              Conseil pour les Affaires et le Management<br>
+              Prestations de Services &amp; Divers
             </div>
+          </div>
 
-            <div class="doc-date" id="view-date">Ouagadougou, le --/--/----</div>
-            <div class="doc-title" id="view-title">FACTURE N° --</div>
-
-            <div class="details-zone">
-                <div><b id="view-client-label">Doit :</b> <span id="view-client"></span></div>
-                <div><b>Tél :</b> <span id="view-tel"></span></div>
-                <div id="view-row-objet"><b>Objet :</b> <span id="view-objet"></span></div>
-                <div id="view-row-periode" class="hidden"><b>Période :</b> <span id="view-periode"></span></div>
+          <!-- En-tête Café des Entrepreneurs -->
+          <div id="head-cafe" class="hidden">
+            <div class="cafe-head">
+              <div class="l"><img src="logo-cafe.jpg" alt="Le Café des Entrepreneurs" onerror="this.outerHTML='<b style=&quot;font-size:26px;color:#0056b3&quot;>LE CAFÉ DES ENTREPRENEURS</b>'"></div>
+              <div class="r">
+                <small>Une initiative de</small>
+                <img src="logo.jpg" alt="FASOPRENEURIAT" onerror="this.style.display='none'">
+                <b>FASOPRENEURIAT</b>
+              </div>
             </div>
+            <div class="cafe-tag">Rencontres &amp; réseautage des entrepreneurs — Organisé par FASOPRENEURIAT SARL</div>
+          </div>
 
-            <table id="factureTable">
-                <thead>
-                    <tr>
-                        <th>Désignation</th>
-                        <th>Quantité</th>
-                        <th>Prix Unitaire</th>
-                        <th>Prix Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td id="view-table-designation" style="text-align: left;"></td>
-                        <td id="view-table-qty">0</td>
-                        <td id="view-table-pu">0</td>
-                        <td id="view-table-ptotal">0</td>
-                    </tr>
-                </tbody>
+          <div class="doc-date" id="view-date"></div>
+          <div class="doc-title" id="view-title"></div>
+
+          <div class="details-zone">
+            <div><b id="view-client-label">Doit :</b> <span id="view-client"></span></div>
+            <div><b>Tél :</b> <span id="view-tel"></span></div>
+            <div data-view="facture simple"><b>Objet :</b> <span id="view-objet"></span></div>
+            <div data-view="tontine"><b>Période :</b> <span id="view-periode"></span></div>
+            <div data-view="cafe"><b>Session :</b> <span id="view-session"></span></div>
+            <div id="view-row-moyen" class="hidden"><b>Paiement :</b> <span id="view-moyen"></span></div>
+          </div>
+
+          <!-- FACTURE -->
+          <div data-view="facture">
+            <table>
+              <thead><tr><th>Désignation</th><th>Quantité</th><th>Prix Unitaire</th><th>Prix Total</th></tr></thead>
+              <tbody><tr>
+                <td id="v-designation" style="text-align:left"></td>
+                <td id="v-qty">0</td><td id="v-pu">0</td><td id="v-pt">0</td>
+              </tr></tbody>
             </table>
+            <div class="amount-box">TOTAL : <span id="v-total">0</span> FCFA</div>
+          </div>
 
-            <div id="receiptAmounts" class="hidden" style="font-size: 16px; line-height: 2;">
-                <div class="amount-box" style="text-align: left;" id="view-receipt-main-amount">Montant payé : 0 FCFA</div>
-                <div id="view-row-reste" class="hidden"><b>Reste à payer :</b> <span id="view-receipt-reste">0</span> FCFA</div>
+          <!-- TONTINE / SIMPLE -->
+          <div data-view="tontine simple" style="font-size:16px;line-height:2">
+            <div class="amount-box" style="text-align:left" id="v-main-amount">Montant payé : 0 FCFA</div>
+            <div data-view="tontine"><b>Reste à payer :</b> <span id="v-reste">0</span> FCFA</div>
+          </div>
+
+          <!-- CAFE -->
+          <div data-view="cafe">
+            <div class="sum-grid">
+              <div class="sum"><small>Participation</small><b id="c-total">0</b></div>
+              <div class="sum"><small>Déjà versé</small><b id="c-deja">0</b></div>
+              <div class="sum hi"><small>Versé ce jour</small><b id="c-verse">0</b></div>
+              <div class="sum"><small>Reste à payer</small><b id="c-reste">0</b></div>
             </div>
-
-            <div class="amount-box" id="factureTotalBox">TOTAL : <span id="view-total-general">0</span> FCFA</div>
-
-            <div class="words-box">
-                Arrêtée la présente facture à la somme de : <br>
-                <span id="view-amount-words" style="text-transform: uppercase;">ZERO FRANC CFA</span>
+            <div style="text-align:right"><span class="badge ok" id="c-badge">SOLDÉ</span></div>
+            <div id="c-sched-wrap" class="hidden">
+              <div class="sched-title">Échéancier de participation</div>
+              <table class="sched">
+                <thead><tr><th>Tranche</th><th>Montant (FCFA)</th><th>Statut</th></tr></thead>
+                <tbody id="c-sched"></tbody>
+              </table>
             </div>
+          </div>
 
-            <div class="signature-zone">
-                <p>Le Directeur</p>
-                <img src="cachet-signature.jpg" alt="Cachet & Signature">
-                <div class="directeur-name">
-                    Karim KABORE
-                    <small class="directeur-title">Docteur Qualité Totale et Entrepreneuriat</small>
-                </div>
+          <div class="words-box">
+            <span id="words-label">Arrêtée la présente facture à la somme de :</span><br>
+            <span id="view-words" style="text-transform:uppercase"></span>
+          </div>
+
+          <div class="signature-zone">
+            <p>Le Directeur</p>
+            <img src="cachet-signature.jpg" alt="Cachet & Signature" onerror="this.style.display='none'">
+            <div class="directeur-name">Karim KABORE
+              <small class="directeur-title">Docteur Qualité Totale et Entrepreneuriat</small>
             </div>
+          </div>
 
-            <div class="footer-company">
-                Société Anonyme à Responsabilité Limitée au Capital de : 1 000 000 FCFA - Siège Social : Ouagadougou - Secteur 13<br>
-                07 BP 8753 Ouagadougou 07 - Cél : (226) 70 73 87 17<br>
-                RC : BF OUA 2021 B 3722 - N° IFU : 00155776B - N° Cpte BOA : 04053640003
-            </div>
-
+          <div class="footer-company">
+            Société Anonyme à Responsabilité Limitée au Capital de : 1 000 000 FCFA - Siège Social : Ouagadougou - Secteur 13<br>
+            07 BP 8753 Ouagadougou 07 - Cél : (226) 70 73 87 17<br>
+            RC : BF OUA 2021 B 3722 - N° IFU : 00155776B - N° Cpte BOA : 04053640003
+          </div>
         </div>
-    </div>
 
+      </div>
+    </div>
+  </section>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
-    function conversionEnLettres(montant) {
-        if (!montant || montant <= 0) return "ZERO FRANC CFA";
-        return formatNumber(montant) + " FRANCS CFA";
+/* ============ Utilitaires ============ */
+const $ = id => document.getElementById(id);
+const fmt = v => (!v || isNaN(v)) ? "0" : Number(v).toLocaleString('fr-FR');
+const num = id => Math.max(0, parseInt($(id).value) || 0);
+
+/* Nombre en lettres (français) */
+function enLettres(n){
+  n = Math.floor(n);
+  if(!n || n <= 0) return "ZÉRO FRANC CFA";
+  const S = ['zéro','un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize','dix-sept','dix-huit','dix-neuf'];
+  const T = {2:'vingt',3:'trente',4:'quarante',5:'cinquante',6:'soixante'};
+  function b100(x){
+    if(x < 20) return S[x];
+    const d = Math.floor(x/10), u = x%10;
+    if(d <= 6) return T[d] + (u===0 ? '' : (u===1 ? ' et un' : '-' + S[u]));
+    if(d === 7) return 'soixante' + (u===1 ? ' et onze' : '-' + S[10+u]);
+    if(d === 8) return 'quatre-vingt' + (u===0 ? 's' : '-' + S[u]);
+    return 'quatre-vingt-' + S[10+u];
+  }
+  function b1000(x, final){
+    const h = Math.floor(x/100), r = x%100;
+    let s = '';
+    if(h > 0){
+      s = (h===1 ? 'cent' : S[h] + ' cent');
+      if(r === 0 && h > 1 && final) s += 's';
     }
-
-    function generateGlobalNumber() {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const hour = String(now.getHours()).padStart(2, '0');
-        const minute = String(now.getMinutes()).padStart(2, '0');
-        const second = String(now.getSeconds()).padStart(2, '0');
-        return `FP-${year}${month}${day}${hour}${minute}${second}`;
+    if(r > 0){
+      let t = b100(r);
+      if(!final && t === 'quatre-vingts') t = 'quatre-vingt';
+      s += (s ? ' ' : '') + t;
     }
+    return s;
+  }
+  const parts = [];
+  const mil = Math.floor(n/1000000), reste = n % 1000000;
+  const k = Math.floor(reste/1000), u = reste % 1000;
+  if(mil > 0) parts.push(b1000(mil, true) + (mil > 1 ? ' millions' : ' million'));
+  if(k > 0) parts.push(k === 1 ? 'mille' : b1000(k, false) + ' mille');
+  if(u > 0) parts.push(b1000(u, true));
+  return (parts.join(' ') + ' francs CFA').toUpperCase();
+}
 
-    const currentDocNumber = generateGlobalNumber();
+function genNumber(prefix){
+  const d = new Date(), p = x => String(x).padStart(2,'0');
+  return `${prefix}-${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+}
+const PREFIX = {facture:'FP', tontine:'RT', simple:'RS', cafe:'CE'};
+let docNumber = '', currentType = 'facture', plan = 'full';
 
-    function setStaticDateAndNumber() {
-        const now = new Date();
-        const options = { day: 'numeric', month: 'long', year: 'numeric' };
-        document.getElementById('view-date').innerText = "Ouagadougou, le " + now.toLocaleDateString('fr-FR', options);
+/* ============ Type de document ============ */
+function selectType(type){
+  currentType = type;
+  document.querySelectorAll('.type-card').forEach(c => c.classList.toggle('active', c.dataset.type === type));
+  document.body.classList.toggle('theme-cafe', type === 'cafe');
+  newNumber();
+
+  document.querySelectorAll('[data-form]').forEach(el => el.classList.toggle('hidden', !el.dataset.form.split(' ').includes(type)));
+  document.querySelectorAll('[data-view]').forEach(el => el.classList.toggle('hidden', !el.dataset.view.split(' ').includes(type)));
+
+  $('head-std').classList.toggle('hidden', type === 'cafe');
+  $('head-cafe').classList.toggle('hidden', type !== 'cafe');
+  $('doc-render').dataset.theme = type === 'cafe' ? 'cafe' : 'fasop';
+
+  const labels = {
+    facture:['Nom du Client / Doit','Doit :','FACTURE N° ','Arrêtée la présente facture à la somme de :'],
+    tontine:['Nom du Client','Reçu de :','REÇU DE PAIEMENT TONTINE N° ','Reçu la somme de :'],
+    simple :['Nom du Client','Reçu de :','REÇU SIMPLE N° ','Reçu la somme de :'],
+    cafe   :['Nom du Participant','Participant :','REÇU DE PARTICIPATION — CAFÉ DES ENTREPRENEURS N° ','Reçu la somme de :']
+  }[type];
+  $('form-client-label').innerText = labels[0];
+  $('view-client-label').innerText = labels[1];
+  $('view-title').innerText = labels[2] + docNumber;
+  $('words-label').innerText = labels[3];
+
+  if(type === 'cafe') recalcPlan(); else update();
+  fit();
+}
+
+function newNumber(){
+  docNumber = genNumber(PREFIX[currentType]);
+  $('numPill').innerText = 'N° ' + docNumber;
+}
+
+function setDate(){
+  const o = { day:'numeric', month:'long', year:'numeric' };
+  $('view-date').innerText = "Ouagadougou, le " + new Date().toLocaleDateString('fr-FR', o);
+}
+
+/* ============ Plan de paiement Café ============ */
+function tranches(total, n){
+  const base = Math.round(total / n / 100) * 100;
+  const arr = Array(n).fill(base);
+  arr[n-1] = total - base * (n-1);
+  return arr;
+}
+
+function setPlan(p){
+  plan = p;
+  document.querySelectorAll('#planChips .chip').forEach(c => c.classList.toggle('active', c.dataset.plan === p));
+  const n = parseInt(p);
+  const sel = $('trancheNum');
+  if(!isNaN(n)){
+    sel.innerHTML = '';
+    for(let i = 1; i <= n; i++){ const o = document.createElement('option'); o.value = i; o.textContent = `Tranche ${i} / ${n}`; sel.appendChild(o); }
+    $('trancheRow').classList.remove('hidden');
+  } else {
+    $('trancheRow').classList.add('hidden');
+  }
+  recalcPlan();
+}
+
+function recalcPlan(){
+  const total = num('cafeTotal');
+  if(plan === 'full'){
+    $('cafeDeja').value = 0;
+    $('cafeVerse').value = total;
+  } else if(plan !== 'custom'){
+    const n = parseInt(plan), k = parseInt($('trancheNum').value) || 1;
+    const t = tranches(total, n);
+    $('cafeDeja').value = t.slice(0, k-1).reduce((a,b) => a+b, 0);
+    $('cafeVerse').value = t[k-1];
+  }
+  update();
+}
+
+/* Si l'utilisateur modifie les montants à la main → mode libre */
+function manualEdit(){
+  if(plan !== 'custom'){
+    plan = 'custom';
+    document.querySelectorAll('#planChips .chip').forEach(c => c.classList.toggle('active', c.dataset.plan === 'custom'));
+    $('trancheRow').classList.add('hidden');
+  }
+  update();
+}
+
+/* ============ Mise à jour de l'aperçu ============ */
+function update(){
+  const type = currentType;
+  $('view-client').innerText = $('client').value.toUpperCase();
+  $('view-tel').innerText = $('telephone').value;
+  $('view-objet').innerText = $('objet').value.toUpperCase();
+
+  const moyen = $('moyen').value;
+  $('view-moyen').innerText = moyen;
+  $('view-row-moyen').classList.toggle('hidden', type === 'facture' || !moyen);
+
+  let paid = 0;
+
+  if(type === 'facture'){
+    const q = num('quantite'), pu = num('prix');
+    paid = q * pu;
+    $('v-designation').innerText = $('objet').value.toUpperCase() || "DÉSIGNATION COMMERCIALE";
+    $('v-qty').innerText = fmt(q); $('v-pu').innerText = fmt(pu);
+    $('v-pt').innerText = fmt(paid); $('v-total').innerText = fmt(paid);
+  }
+  else if(type === 'tontine'){
+    paid = num('montantVerse');
+    $('view-periode').innerText = $('periode').value.toUpperCase();
+    $('v-main-amount').innerText = "Montant payé : " + fmt(paid) + " FCFA";
+    $('v-reste').innerText = fmt(num('restePayer'));
+  }
+  else if(type === 'simple'){
+    paid = num('montantSimple');
+    $('v-main-amount').innerText = "Montant payé : " + fmt(paid) + " FCFA";
+  }
+  else if(type === 'cafe'){
+    const total = num('cafeTotal'), deja = num('cafeDeja'), verse = num('cafeVerse');
+    const reste = Math.max(0, total - deja - verse);
+    paid = verse;
+    $('view-session').innerText = $('session').value.toUpperCase();
+    $('c-total').innerText = fmt(total);
+    $('c-deja').innerText = fmt(deja);
+    $('c-verse').innerText = fmt(verse);
+    $('c-reste').innerText = fmt(reste);
+
+    const badge = $('c-badge');
+    if(reste === 0){ badge.className = 'badge ok'; badge.innerText = 'PARTICIPATION SOLDÉE'; }
+    else { badge.className = 'badge part'; badge.innerText = 'PAIEMENT PARTIEL — RESTE ' + fmt(reste) + ' FCFA'; }
+
+    $('cafeHint').innerText = 'Reste à payer après ce versement : ' + fmt(reste) + ' FCFA';
+    $('cafeAlert').classList.toggle('hidden', deja + verse <= total);
+
+    // Échéancier
+    const wrap = $('c-sched-wrap'), body = $('c-sched');
+    if(plan !== 'custom' && plan !== 'full'){
+      const n = parseInt(plan), k = parseInt($('trancheNum').value) || 1, t = tranches(total, n);
+      body.innerHTML = t.map((m,i) => {
+        const st = i+1 < k ? '<span class="st-paid">Payée</span>' : (i+1 === k ? '<span class="st-now">Réglée ce jour</span>' : '<span class="st-next">À venir</span>');
+        return `<tr${i+1===k?' class="st-now"':''}><td>Tranche ${i+1} / ${n}</td><td>${fmt(m)}</td><td>${st}</td></tr>`;
+      }).join('');
+      wrap.classList.remove('hidden');
+    } else {
+      wrap.classList.add('hidden');
     }
+  }
 
-    function formatNumber(val) {
-        if (!val || isNaN(val)) return "0";
-        return Number(val).toLocaleString('fr-FR');
-    }
+  $('view-words').innerText = enLettres(paid);
+  $('view-title').innerText = $('view-title').innerText.replace(/N° .*$/, 'N° ' + docNumber);
+}
 
-    function switchDocumentType() {
-        const type = document.getElementById('documentType').value;
-        
-        const formClientLabel = document.getElementById('form-client-label');
-        const viewClientLabel = document.getElementById('view-client-label');
+/* ============ Aperçu adaptatif (écran) ============ */
+function fit(){
+  const wrap = $('scalerWrap'), sc = $('scaler');
+  const avail = wrap.clientWidth || 794;
+  const s = Math.min(1, avail / 794);
+  sc.style.transform = `scale(${s})`;
+  sc.style.width = '794px';
+  sc.style.height = '1123px';
+  wrap.style.height = (1123 * s) + 'px';
+  wrap.style.justifyContent = s < 1 ? 'flex-start' : 'center';
+}
+window.addEventListener('resize', fit);
+if(window.ResizeObserver) new ResizeObserver(fit).observe($('scalerWrap'));
 
-        const objetField = document.getElementById('objetField');
-        const factureFields = document.getElementById('factureFields');
-        const tontineFields = document.getElementById('tontineFields');
-        const simpleFields = document.getElementById('simpleFields');
+function setView(v){
+  document.body.classList.remove('view-form','view-preview');
+  document.body.classList.add('view-' + v);
+  $('tab-form').classList.toggle('active', v === 'form');
+  $('tab-preview').classList.toggle('active', v === 'preview');
+  setTimeout(fit, 30);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
 
-        const viewTitle = document.getElementById('view-title');
-        const viewRowObjet = document.getElementById('view-row-objet');
-        const viewRowPeriode = document.getElementById('view-row-periode');
-        const viewRowReste = document.getElementById('view-row-reste');
-        const factureTable = document.getElementById('factureTable');
-        const factureTotalBox = document.getElementById('factureTotalBox');
-        const receiptAmounts = document.getElementById('receiptAmounts');
+function toast(msg){
+  const t = $('toast'); t.innerText = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
 
-        if (type === 'facture') {
-            viewTitle.innerText = "FACTURE N° " + currentDocNumber;
-            formClientLabel.innerText = "Nom du Client / Doit";
-            viewClientLabel.innerText = "Doit :";
+/* ============ PDF — toujours A4 (794 x 1123 px) ============ */
+async function downloadPDF(){
+  const btn = $('dlBtn'); btn.disabled = true; const old = btn.innerHTML; btn.innerHTML = 'Génération du PDF…';
+  try{
+    const original = $('doc-render');
+    const sandbox = document.createElement('div');
+    sandbox.style.cssText = 'position:absolute;left:-20000px;top:0;width:1000px;background:#fff';
+    document.body.appendChild(sandbox);
 
-            objetField.classList.remove('hidden');
-            factureFields.classList.remove('hidden');
-            tontineFields.classList.add('hidden');
-            simpleFields.classList.add('hidden');
+    const clone = original.cloneNode(true);
+    clone.removeAttribute('id');
+    clone.style.cssText += ';width:794px;height:1123px;min-height:1123px;max-height:1123px;transform:none;position:relative';
+    sandbox.appendChild(clone);
 
-            factureTable.classList.remove('hidden');
-            factureTotalBox.classList.remove('hidden');
-            receiptAmounts.classList.add('hidden');
-            viewRowObjet.classList.remove('hidden');
-            viewRowPeriode.classList.add('hidden');
-        } 
-        else {
-            formClientLabel.innerText = "Nom du Client";
-            viewClientLabel.innerText = "Reçu de :";
+    const canvas = await html2canvas(clone, {
+      scale: 2.5, useCORS: true, backgroundColor: '#ffffff', logging: false,
+      width: 794, height: 1123, windowWidth: 1200, windowHeight: 1500, scrollX: 0, scrollY: 0
+    });
+    sandbox.remove();
 
-            factureTable.classList.add('hidden');
-            factureTotalBox.classList.add('hidden');
-            receiptAmounts.classList.remove('hidden');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    pdf.addImage(canvas.toDataURL('image/jpeg', 1.0), 'JPEG', 0, 0, 210, 297);
+    pdf.save(`${currentType.toUpperCase()}_${docNumber}.pdf`);
+    toast('PDF téléchargé');
+  }catch(e){
+    console.error(e);
+    toast('Erreur lors de la génération du PDF');
+  }finally{
+    btn.disabled = false; btn.innerHTML = old;
+  }
+}
 
-            if (type === 'tontine') {
-                viewTitle.innerText = "REÇU DE PAIEMENT TONTINE N° " + currentDocNumber;
-                objetField.classList.add('hidden');
-                factureFields.classList.add('hidden');
-                tontineFields.classList.remove('hidden');
-                simpleFields.classList.add('hidden');
+/* ============ Nouveau document ============ */
+function newDoc(){
+  ['client','telephone','objet','periode','session'].forEach(id => $(id).value = '');
+  $('quantite').value = 1; $('prix').value = 0; $('montantVerse').value = 0; $('restePayer').value = 0; $('montantSimple').value = 0;
+  $('cafeTotal').value = 12000; $('moyen').value = '';
+  setDate();
+  setPlan('full');
+  selectType(currentType);
+  toast('Nouveau document prêt');
+}
 
-                viewRowObjet.classList.add('hidden');
-                viewRowPeriode.classList.remove('hidden');
-                viewRowReste.classList.remove('hidden');
-            } 
-            else if (type === 'simple') {
-                viewTitle.innerText = "REÇU SIMPLE N° " + currentDocNumber;
-                objetField.classList.remove('hidden');
-                factureFields.classList.add('hidden');
-                tontineFields.classList.add('hidden');
-                simpleFields.classList.remove('hidden');
-
-                viewRowObjet.classList.remove('hidden');
-                viewRowPeriode.classList.add('hidden');
-                viewRowReste.classList.add('hidden');
-            }
-        }
-
-        updateDocumentPreview();
-    }
-
-    function updateDocumentPreview() {
-        const type = document.getElementById('documentType').value;
-        
-        const clientVal = document.getElementById('client').value.toUpperCase();
-        const telVal = document.getElementById('telephone').value;
-        const objetVal = document.getElementById('objet').value.toUpperCase();
-
-        document.getElementById('view-client').innerText = clientVal;
-        document.getElementById('view-tel').innerText = telVal;
-        document.getElementById('view-objet').innerText = objetVal;
-
-        let calculTotal = 0;
-
-        if (type === 'facture') {
-            const qty = parseInt(document.getElementById('quantite').value) || 0;
-            const pu = parseInt(document.getElementById('prix').value) || 0;
-            calculTotal = qty * pu;
-
-            document.getElementById('view-table-designation').innerText = objetVal || "DESIGNATION COMMERCIALE";
-            document.getElementById('view-table-qty').innerText = formatNumber(qty);
-            document.getElementById('view-table-pu').innerText = formatNumber(pu);
-            document.getElementById('view-table-ptotal').innerText = formatNumber(calculTotal);
-            document.getElementById('view-total-general').innerText = formatNumber(calculTotal);
-        } 
-        else if (type === 'tontine') {
-            const verset = parseInt(document.getElementById('montantVerse').value) || 0;
-            const reste = parseInt(document.getElementById('restePayer').value) || 0;
-            const periodeVal = document.getElementById('periode').value.toUpperCase();
-            calculTotal = verset;
-
-            document.getElementById('view-periode').innerText = periodeVal;
-            document.getElementById('view-receipt-main-amount').innerText = "Montant payé : " + formatNumber(verset) + " FCFA";
-            document.getElementById('view-receipt-reste').innerText = formatNumber(reste);
-        } 
-        else if (type === 'simple') {
-            const payeSimple = parseInt(document.getElementById('montantSimple').value) || 0;
-            calculTotal = payeSimple;
-
-            document.getElementById('view-receipt-main-amount').innerText = "Montant payé : " + formatNumber(payeSimple) + " FCFA";
-        }
-
-        document.getElementById('view-amount-words').innerText = conversionEnLettres(calculTotal);
-    }
-
-    // --- MISE À JOUR MAJEURE POUR LES IPHONES ET PETITS ÉCRANS ---
-    async function downloadPDF() {
-        const originalDoc = document.getElementById('doc-render');
-
-        // 1. Créer un bac à sable isolé
-        const sandbox = document.createElement('div');
-        sandbox.style.position = 'absolute';
-        sandbox.style.left = '-20000px';
-        sandbox.style.top = '0px';
-        sandbox.style.width = '1000px'; 
-        sandbox.style.background = '#ffffff';
-        document.body.appendChild(sandbox);
-
-        // 2. Cloner et forcer le style en dimensions absolues CSS (évite l'empilement Retina/Safari)
-        const clonedDoc = originalDoc.cloneNode(true);
-        clonedDoc.style.width = '794px';       // Équivalent exact de 210mm en px
-        clonedDoc.style.height = '1123px';     // Équivalent exact de 297mm en px
-        clonedDoc.style.minHeight = '1123px';
-        clonedDoc.style.maxHeight = '1123px';
-        clonedDoc.style.display = 'flex';
-        clonedDoc.style.flexDirection = 'column';
-        clonedDoc.style.transform = 'none';    // Désactive les effets de bord de zoom éventuels
-        
-        sandbox.appendChild(clonedDoc);
-
-        // 3. Capture avec options spécifiques anti-Retina / Anti-iOS zoom
-        const canvas = await html2canvas(clonedDoc, {
-            scale: 2.5,             // Facteur de clarté optimal sans pixellisation
-            useCORS: true,
-            backgroundColor: "#ffffff",
-            logging: false,
-            width: 794,             // Forcer le recadrage photo à la dimension A4 exacte
-            height: 1123,
-            windowWidth: 1200,      // Simuler une largeur de bureau complète pour l'interpréteur Safari
-            windowHeight: 1500
-        });
-
-        // 4. Nettoyage
-        sandbox.remove();
-
-        // 5. Export PDF standardisé
-        const imgData = canvas.toDataURL('image/jpeg', 1.0);
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'mm',
-            format: 'a4'
-        });
-
-        pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
-        
-        const type = document.getElementById('documentType').value;
-        pdf.save(`${type.toUpperCase()}_${currentDocNumber}.pdf`);
-    }
-
-    setStaticDateAndNumber();
-    switchDocumentType();
+/* ============ Init ============ */
+setDate();
+selectType('facture');
+setPlan('full');
+fit();
 </script>
-
 </body>
 </html>
