@@ -137,6 +137,27 @@ table th,table td{border:1px solid #000;padding:10px;text-align:center}
   body.view-form .preview-area{display:none}
   body.view-preview .panel{display:none}
 }
+
+/* ---------- Petits écrans (téléphones) ---------- */
+@media(max-width:640px){
+  .topbar{flex-wrap:nowrap;padding:10px 12px;gap:8px}
+  .brand{gap:8px;min-width:0}
+  .brand-badge{width:30px;height:30px;border-radius:9px;font-size:15px;flex:none}
+  .brand b{font-size:14px;letter-spacing:.2px;white-space:nowrap}
+  .brand small{display:none}
+  .tabs{display:flex;gap:2px;padding:3px;border-radius:10px;flex:none}
+  .tabs button{padding:6px 11px;font-size:12px;border-radius:8px}
+  .container{margin-top:10px;padding:0 10px}
+  .panel{padding:18px 14px;border-radius:16px}
+  .panel h2{font-size:18px}
+  .panel .sub{margin-bottom:14px}
+  .types{gap:8px}
+  .type-card{padding:10px}
+  .row2{gap:8px}
+  .preview-bar{flex-wrap:wrap;gap:6px}
+  .preview-bar .pill{font-size:11px;padding:5px 10px}
+  .toast{max-width:90%;text-align:center}
+}
 </style>
 </head>
 <body class="view-form">
@@ -595,7 +616,6 @@ async function downloadPDF(){
     document.body.appendChild(sandbox);
 
     const clone = original.cloneNode(true);
-    clone.removeAttribute('id');
     clone.style.cssText += ';width:794px;height:1123px;min-height:1123px;max-height:1123px;transform:none;position:relative';
     sandbox.appendChild(clone);
 
